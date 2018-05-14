@@ -58,11 +58,10 @@
 
 namespace astra_wrapper
 {
-
 class AstraDriver
 {
 public:
-  AstraDriver(ros::NodeHandle& n, ros::NodeHandle& pnh) ;
+  AstraDriver(ros::NodeHandle& n, ros::NodeHandle& pnh);
 
 private:
   typedef astra_camera::AstraConfig Config;
@@ -92,7 +91,7 @@ private:
 
   bool getSerialCb(astra_camera::GetSerialRequest& req, astra_camera::GetSerialResponse& res);
 
-  void configCb(Config &config, uint32_t level);
+  void configCb(Config& config, uint32_t level);
 
   void applyConfigToOpenNIDevice();
 
@@ -104,6 +103,8 @@ private:
   void setIRVideoMode(const AstraVideoMode& ir_video_mode);
   void setColorVideoMode(const AstraVideoMode& color_video_mode);
   void setDepthVideoMode(const AstraVideoMode& depth_video_mode);
+
+  void forceSetExposure();
 
   ros::NodeHandle& nh_;
   ros::NodeHandle& pnh_;
@@ -120,7 +121,7 @@ private:
   boost::shared_ptr<ReconfigureServer> reconfigure_server_;
   bool config_init_;
 
-  std::set<std::string>  alreadyOpen;
+  std::set<std::string> alreadyOpen;
   boost::mutex connect_mutex_;
   // published topics
   image_transport::CameraPublisher pub_color_;
@@ -138,7 +139,7 @@ private:
 
   std::string ir_frame_id_;
   std::string color_frame_id_;
-  std::string depth_frame_id_ ;
+  std::string depth_frame_id_;
 
   std::string color_info_url_, ir_info_url_;
 
@@ -167,6 +168,7 @@ private:
 
   bool auto_exposure_;
   bool auto_white_balance_;
+  int exposure_;
 
   bool ir_subscribers_;
   bool color_subscribers_;
@@ -178,7 +180,6 @@ private:
 
   Config old_config_;
 };
-
 }
 
 #endif
