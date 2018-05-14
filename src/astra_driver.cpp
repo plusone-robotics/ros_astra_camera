@@ -275,6 +275,7 @@ void AstraDriver::configCb(Config &config, uint32_t level)
 
   auto_exposure_ = config.auto_exposure;
   auto_white_balance_ = config.auto_white_balance;
+  exposure_ = config.exposure;
 
   use_device_time_ = config.use_device_time;
 
@@ -388,8 +389,53 @@ void AstraDriver::applyConfigToOpenNIDevice()
     ROS_ERROR("Could not set auto white balance. Reason: %s", exception.what());
   }
 
-  device_->setUseDeviceTimer(use_device_time_);
+  // Workaound for https://github.com/ros-drivers/openni2_camera/issues/51
+  // This is only needed when any of the 3 setting change.  For simplicity
+  // this check is always performed and exposure set.
+  if ((!auto_exposure_ && !auto_white_balance_) && exposure_ != 0)
+  {
+    ROS_INFO_STREAM("Forcing exposure set, when auto exposure/white balance disabled");
+    forceSetExposure();
+  }
+  else
+  {
+    // Setting the exposure the old way, although this should not have an effect
+    try
+    {
+      if (!config_init_ || (old_config_.exposure != exposure_))
+        device_->setExposure(exposure_);
+    }
+    catch (const AstraException& exception)
+    {
+      ROS_ERROR("Could not set exposure. Reason: %s", exception.what());
+    }
+  }
 
+  device_->setUseDeviceTimer(use_device_time_);
+}
+
+void AstraDriver::forceSetExposure()
+{
+  int current_exposure_ = device_->getExposure();
+  try
+  {
+    if (current_exposure_ == exposure_)
+    {
+      if (exposure_ < 254)
+      {
+        device_->setExposure(exposure_ + 1);
+      }
+      else
+      {
+        device_->setExposure(exposure_ - 1);
+      }
+    }
+    device_->setExposure(exposure_);
+  }
+  catch (const AstraException& exception)
+  {
+    ROS_ERROR("Could not set exposure. Reason: %s", exception.what());
+  }
 }
 
 void AstraDriver::imageConnectCb()
@@ -419,11 +465,19 @@ void AstraDriver::imageConnectCb()
 
       ROS_INFO("Starting color stream.");
       device_->startColorStream();
+
+      // Workaound for https://github.com/ros-drivers/openni2_camera/issues/51
+      if (exposure_ != 0)
+      {
+        ROS_INFO_STREAM("Exposure is set to " << exposure_ << ", forcing on color stream start");
+        // delay for stream to start, before setting exposure
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+        forceSetExposure();
+      }
     }
   }
   else if (ir_subscribers_ && (!color_subscribers_ || !rgb_preferred_))
   {
-
     if (color_subscribers_)
       ROS_ERROR("Cannot stream RGB and IR at the same time. Streaming IR only.");
 

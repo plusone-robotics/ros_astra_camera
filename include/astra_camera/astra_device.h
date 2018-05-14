@@ -127,9 +127,11 @@ public:
 
   void setAutoExposure(bool enable) throw (AstraException);
   void setAutoWhiteBalance(bool enable) throw (AstraException);
+  void setExposure(int exposure) throw(AstraException);
 
   bool getAutoExposure() const;
   bool getAutoWhiteBalance() const;
+  int getExposure() const;
 
   void setUseDeviceTimer(bool enable);
 

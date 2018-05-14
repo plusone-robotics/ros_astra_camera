@@ -556,7 +556,22 @@ void AstraDevice::setAutoWhiteBalance(bool enable) throw (AstraException)
       if (rc != openni::STATUS_OK)
         THROW_OPENNI_EXCEPTION("Couldn't set auto white balance: \n%s\n", openni::OpenNI::getExtendedError());
     }
+  }
+}
 
+void AstraDevice::setExposure(int exposure) throw(AstraException)
+{
+  boost::shared_ptr<openni::VideoStream> stream = getColorVideoStream();
+
+  if (stream)
+  {
+    openni::CameraSettings* camera_settings = stream->getCameraSettings();
+    if (camera_settings)
+    {
+      const openni::Status rc = camera_settings->setExposure(exposure);
+      if (rc != openni::STATUS_OK)
+        THROW_OPENNI_EXCEPTION("Couldn't set exposure: \n%s\n", openni::OpenNI::getExtendedError());
+    }
   }
 }
 
@@ -586,6 +601,22 @@ bool AstraDevice::getAutoWhiteBalance() const
     openni::CameraSettings* camera_seeting = stream->getCameraSettings();
     if (camera_seeting)
       ret = camera_seeting->getAutoWhiteBalanceEnabled();
+  }
+
+  return ret;
+}
+
+int AstraDevice::getExposure() const
+{
+  int ret = 0;
+
+  boost::shared_ptr<openni::VideoStream> stream = getColorVideoStream();
+
+  if (stream)
+  {
+    openni::CameraSettings* camera_settings = stream->getCameraSettings();
+    if (camera_settings)
+      ret = camera_settings->getExposure();
   }
 
   return ret;
