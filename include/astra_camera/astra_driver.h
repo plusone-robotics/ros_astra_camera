@@ -105,6 +105,7 @@ private:
   void setColorVideoMode(const AstraVideoMode& color_video_mode);
   void setDepthVideoMode(const AstraVideoMode& depth_video_mode);
 
+  void forceSetExposure();
   ros::NodeHandle& nh_;
   ros::NodeHandle& pnh_;
 
@@ -167,6 +168,7 @@ private:
 
   bool auto_exposure_;
   bool auto_white_balance_;
+  int exposure_;
 
   bool ir_subscribers_;
   bool color_subscribers_;
